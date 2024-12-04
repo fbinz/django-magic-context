@@ -2,6 +2,10 @@
 
 TLDR: Build contexts using dependency injection.
 
+- [Motivation](#motivation)
+- [Usage](#usage)
+- [How It Works](#how-it-works)
+
 ### Motivation
 
 The context is a core part of the Djangos rendering process and can often grow quite large.
