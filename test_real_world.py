@@ -58,14 +58,14 @@ def test_real_world_no_search():
     request = HttpRequest(method="GET", path="employees/", GET={})
 
     context = make_context(request)
-    assert len(context["employee_list"]) == 3
+    assert len(context["employee_list"]()) == 3
 
 
 def test_real_world_query_params_1():
     request = HttpRequest(method="GET", path="employees/", GET={"search": "M"})
 
     context = make_context(request)
-    assert len(context["employee_list"]) == 2
+    assert len(context["employee_list"]()) == 2
 
 
 def test_real_world_query_params_2():
@@ -74,4 +74,4 @@ def test_real_world_query_params_2():
     )
 
     context = make_context(request)
-    assert len(context["employee_list"]) == 1
+    assert len(context["employee_list"]()) == 1
