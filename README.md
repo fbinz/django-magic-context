@@ -66,12 +66,25 @@ Let's see how the above example would look instead:
 ```python
 import django_magic_context as magic
 
+def get_expensive_value(request):
+    ...
+
+def get_list_context(request, expensive):
+    ...
+
+def get_header_context(request, expensive):
+    ...
+
+def get_footer_context():
+    ...
+
 def view(request):
     context = magic.resolve(
         request=request,
         expensive=get_expensive_value,
         list_context=get_list_context,
         header_context=get_header_context,
+        footer_context=get_footer_context,
     )
     ...
 ```
