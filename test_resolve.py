@@ -48,7 +48,12 @@ def test_resolve_injects_dependencies():
         y=get_y,
     )
 
+    # call multiple times, to check that original
+    # functions are actually only called once
     assert context["x"]() == 1
+    assert context["x"]() == 1
+
+    assert context["y"]() == 2
     assert context["y"]() == 2
 
     assert x_call_count == 1
@@ -60,3 +65,26 @@ def test_unused_function_is_not_called():
         raise NotImplementedError
 
     context = resolve(not_used=get_not_used)
+
+
+def test_resolve_dict_update():
+    call_count = 0
+
+    def get_y():
+        nonlocal call_count
+        call_count += 1
+
+        return 3
+
+    context = resolve(y=get_y)
+
+    outer_context = {
+        "z": 1,
+        **context,
+    }
+
+    assert call_count == 0
+    assert outer_context["y"]() == 3
+    assert outer_context["y"]() == 3
+
+    assert call_count == 1

@@ -2,7 +2,7 @@
 
 TLDR: Build contexts using dependency injection.
 
-### Storytime
+### Motivation
 
 The context is a core part of the Djangos rendering process and can often grow quite large.
 As your views become more complex, so does your context.
@@ -52,7 +52,7 @@ def view(request):
 
 As you can imagine, this only get's more complex over time.
 
-#### A solution
+### Solution
 
 This "library" (actually it's little more than a code snippet) implements a pattern called dependency injection inspired pytest's fixtures.
 
@@ -75,3 +75,38 @@ def view(request):
 Note, that the implementation of the functions didn't really change. 
 It only takes care of the wiring of the correct arguments (based on name) to the respective functions.
 On top of that, it ensures that functions are evaluated lazily and only once, meaning that you can safely pass the entire context even if you only require a small part to render a partial for example
+
+
+### Usage
+
+The API only exposes a single function named `resolve`.
+At the moment, I like importing it like so
+```python
+import django_magic_context as magic
+
+def get_value_2(value_1):
+    return value_1 + 1
+
+context = magic.resolve(
+    value_1=123,
+    value_2=get_x,
+)
+```
+
+The `resolve` function takes any number of keyword arguments, which will then be available in the template.
+Non-callable values will just be passed as-is.
+Callable values will take part in the dependency resolution and will be wrapped such that they are only every evaluated once.
+
+
+
+### How it works
+
+This package is primarily useful in the context (pun not intended) of the Django Template Language (DTL).
+The DTL always expects plain dictionaries as context objects, which means that we cannot resort to more traditional ways of implementing laziness (say in a decorator for a method).
+Fortunately, if the DTL encounters a callable where a non-callable value is expected, it will first call
+the callable with no arguments and just use the result.
+
+So, to implement laziness, we use the fact that we are dealing with plain dictionaries:
+On the first use of a callable variable in a template, the callable is evaluated.
+The evaluated value then overwrites the callable value in the dictionary, so that on further uses, the 
+plain, evaluated value can be returned directly.
