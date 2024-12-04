@@ -58,7 +58,7 @@ As you can imagine, this only get's more complex over time.
 
 ### Solution
 
-This "library" (actually it's little more than a code snippet) implements a pattern called dependency injection inspired pytest's fixtures.
+This "library" (actually it's little more than a code snippet) implements a pattern called dependency injection inspired by pytest's fixtures.
 
 Let's see how the above example would look instead:
 
