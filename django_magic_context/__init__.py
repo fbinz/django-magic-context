@@ -17,8 +17,9 @@ def get(context: dict[str, Any], key: str, lazy=True):
     if not callable(value):
         return value
 
-    # handle non-lazy calls
     args = inspect.getargs(value.__code__).args
+
+    # handle non-lazy calls
     if not lazy:
         return evaluate(context, key, value, args)
 
