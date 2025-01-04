@@ -2,26 +2,49 @@ import inspect
 from typing import Any, Callable
 
 NOT_EVALUATED = object()
+NO_DEFAULT = object()
 
 
-def evaluate(context: dict[str, Any], key: str, value: Callable, args: list[str]):
-    evaluated = value(**{name: get(context, name, lazy=False) for name in args})
+def evaluate(
+    context: dict[str, Any],
+    key: str,
+    value: Callable,
+    parameters: list[inspect.Parameter],
+):
+    evaluated = value(
+        **{
+            parameter.name: get(
+                context,
+                parameter.name,
+                lazy=False,
+                default=NO_DEFAULT
+                if parameter.default is inspect.Parameter.empty
+                else parameter.default,
+            )
+            for parameter in parameters
+        }
+    )
     context[key] = evaluated
     return evaluated
 
 
-def get(context: dict[str, Any], key: str, lazy=True):
-    value = context[key]
+def get(context: dict[str, Any], key: str, lazy=True, default=NO_DEFAULT):
+    try:
+        value = context[key]
+    except KeyError:
+        if default is NO_DEFAULT:
+            raise
+        value = default
 
     # handle plain values
     if not callable(value):
         return value
 
-    args = inspect.getargs(value.__code__).args
+    parameters = inspect.signature(value).parameters.values()
 
     # handle non-lazy calls
     if not lazy:
-        return evaluate(context, key, value, args)
+        return evaluate(context, key, value, parameters)
 
     # handle lazy calls
     evaluated = NOT_EVALUATED
@@ -29,7 +52,7 @@ def get(context: dict[str, Any], key: str, lazy=True):
     def lazy_evaluate():
         nonlocal evaluated
         if evaluated is NOT_EVALUATED:
-            evaluated = evaluate(context, key, value, args)
+            evaluated = evaluate(context, key, value, parameters)
         return evaluated
 
     return lazy_evaluate
@@ -37,9 +60,6 @@ def get(context: dict[str, Any], key: str, lazy=True):
 
 def resolve(**kwargs):
     return {k: get(kwargs, k) if callable(v) else v for k, v in kwargs.items()}
-
-
-NO_DEFAULT = object()
 
 
 def cget(context, *keys, default=NO_DEFAULT):
