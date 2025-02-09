@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from typing import Any
 
 import django_magic_context as magic
+
+
+context = magic.Context()
 
 
 @dataclass
@@ -17,10 +19,12 @@ class Employee:
     name: str
 
 
+@context.register("search")
 def get_search(request) -> str | None:
     return request.GET.get("search")
 
 
+@context.register("page")
 def get_page(request) -> int | None:
     page = request.GET.get("page")
     if page is not None:
@@ -29,6 +33,7 @@ def get_page(request) -> int | None:
     return None
 
 
+@context.register("employee_list")
 def get_employee_list(search: str | None, page: int | None) -> list[Employee]:
     employees = [
         Employee("1", "Mary"),
@@ -46,12 +51,7 @@ def get_employee_list(search: str | None, page: int | None) -> list[Employee]:
 
 
 def make_context(request):
-    return magic.resolve(
-        request=request,
-        search=get_search,
-        employee_list=get_employee_list,
-        page=get_page,
-    )
+    return context.resolve(request=request)
 
 
 def test_real_world_no_search():
